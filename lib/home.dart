@@ -6,9 +6,9 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
-        child: Text('test'),
+        child: Lottie.asset("assets/animations/weather.json", repeat: true),
       ),
     );
   }
