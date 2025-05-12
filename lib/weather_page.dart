@@ -1,5 +1,8 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:weather/weather.dart';
 import 'package:weather_app/weather_model.dart';
@@ -69,8 +72,33 @@ class _WeatherPageState extends State<WeatherPage> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: [],
+        children: [
+          _locationHeader(),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.08,
+          ),
+          _dateTimeInfo(),
+        ],
       ),
+    );
+  }
+
+  Widget _locationHeader() {
+    return Text(
+      _weather?.areaName ?? "",
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+    );
+  }
+
+  Widget _dateTimeInfo() {
+    DateTime now = _weather!.date!;
+    return Column(
+      children: [
+        Text(
+          DateFormat('h:mm a').format(now),
+          style: TextStyle(fontSize: 28),
+        ),
+      ],
     );
   }
 }
