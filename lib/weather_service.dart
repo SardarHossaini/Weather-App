@@ -27,11 +27,11 @@ class WeatherService {
       permission = await Geolocator.requestPermission();
     }
 
-    Position position = await Geolocator.getCurrentPosition(
+    Position positions = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
 
     List<Placemark> placemark =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
+        await placemarkFromCoordinates(positions.latitude, positions.longitude);
 
     String? city = placemark[0].locality;
 
