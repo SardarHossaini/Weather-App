@@ -78,6 +78,14 @@ class _WeatherPageState extends State<WeatherPage> {
             height: MediaQuery.sizeOf(context).height * 0.08,
           ),
           _dateTimeInfo(),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.05,
+          ),
+          _weatherIcon(),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.02,
+          ),
+          _currentTump(),
         ],
       ),
     );
@@ -98,7 +106,44 @@ class _WeatherPageState extends State<WeatherPage> {
           DateFormat('h:mm a').format(now),
           style: TextStyle(fontSize: 28),
         ),
+        SizedBox(
+          height: 10,
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              DateFormat('EEEE').format(now),
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            Text(
+              "  ${DateFormat('d.m.y').format(now)}",
+              style: TextStyle(fontWeight: FontWeight.w400),
+            ),
+          ],
+        )
       ],
     );
+  }
+
+  Widget _weatherIcon() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          height: MediaQuery.sizeOf(context).height * 0.5,
+          child: Lottie.asset('assets/animations/weather.json'),
+        ),
+        Text(_weather?.weatherDescription ?? ""),
+      ],
+    );
+  }
+
+  Widget _currentTump() {
+    return Text("${_weather?.temperature?.celsius?.toStringAsFixed(0)}° C");
   }
 }
