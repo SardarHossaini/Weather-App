@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lottie/lottie.dart';
+import 'package:weather/weather.dart';
 import 'package:weather_app/weather_model.dart';
 import 'package:weather_app/weather_service.dart';
 
@@ -35,17 +36,41 @@ class _WeatherPageState extends State<WeatherPage> {
   //   fetchWeather();
   // }
 
+  final WeatherFactory _wf = WeatherFactory(api_key);
+  Weather? _weather;
+
+  @override
+  void initState() {
+    super.initState();
+    _wf.currentWeatherByCityName("Kabul").then((w) => {
+          setState(() {
+            _weather = w;
+          })
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-          child: Column(
-        children: [
-          Lottie.asset('assets/animations/weather.json'),
-          // Text(_weather?.cityName ?? ""),
-          // Text("${_weather?.tempretuer.round()} C")
-        ],
-      )),
+      body: _buildUI(),
+    );
+  }
+
+  Widget _buildUI() {
+    if (_weather == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height,
+      width: MediaQuery.sizeOf(context).width,
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [],
+      ),
     );
   }
 }
