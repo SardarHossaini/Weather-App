@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:geocoding/geocoding.dart';
 import 'package:weather_app/weather_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -26,8 +27,14 @@ class WeatherService {
       permission = await Geolocator.requestPermission();
     }
 
-    Position position= await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high
-    )
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    List<Placemark> placemark =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    String? city = placemark[0].locality;
+
+    return city ?? "";
   }
 }
