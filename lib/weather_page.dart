@@ -86,6 +86,10 @@ class _WeatherPageState extends State<WeatherPage> {
             height: MediaQuery.sizeOf(context).height * 0.02,
           ),
           _currentTump(),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.02,
+          ),
+          _extraInfo(),
         ],
       ),
     );
@@ -135,7 +139,7 @@ class _WeatherPageState extends State<WeatherPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          height: MediaQuery.sizeOf(context).height * 0.5,
+          height: MediaQuery.sizeOf(context).height * 0.3,
           child: Lottie.asset('assets/animations/weather.json'),
         ),
         Text(_weather?.weatherDescription ?? ""),
@@ -144,6 +148,56 @@ class _WeatherPageState extends State<WeatherPage> {
   }
 
   Widget _currentTump() {
-    return Text("${_weather?.temperature?.celsius?.toStringAsFixed(0)}° C");
+    return Text(
+      "${_weather?.temperature?.celsius?.toStringAsFixed(0)}° C",
+      style: TextStyle(fontSize: 20),
+    );
+  }
+
+  Widget _extraInfo() {
+    return Container(
+      height: MediaQuery.sizeOf(context).height * 0.15,
+      width: MediaQuery.sizeOf(context).width * 0.8,
+      decoration: BoxDecoration(
+          color: Colors.deepPurpleAccent,
+          borderRadius: BorderRadius.circular(20)),
+      padding: EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Max: ${_weather?.tempMax?.celsius?.toStringAsFixed(0)}° C",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              Text(
+                "Min: ${_weather?.tempMin?.celsius?.toStringAsFixed(0)}° C",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Wind: ${_weather?.windSpeed?.toStringAsFixed(0)}m/s",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              Text(
+                "Humidity: ${_weather?.humidity?.toStringAsFixed(0)}%",
+                style: TextStyle(color: Colors.white, fontSize: 15),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
