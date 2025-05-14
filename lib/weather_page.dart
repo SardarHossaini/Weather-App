@@ -1,5 +1,6 @@
 import 'dart:html';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -55,6 +56,7 @@ class _WeatherPageState extends State<WeatherPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue[300],
       body: _buildUI(),
     );
   }
@@ -132,16 +134,76 @@ class _WeatherPageState extends State<WeatherPage> {
     );
   }
 
+  Widget getWeatherIcon(String? description) {
+    switch (description) {
+      case "clear sky":
+        return Container(
+          height: MediaQuery.sizeOf(context).height * 0.3,
+          child: Lottie.asset('assets/animations/suny.json'),
+        );
+      case "few clouds" ||
+            "scattered clouds" ||
+            "broken clouds" ||
+            "overcast clouds":
+        return Container(
+          height: MediaQuery.sizeOf(context).height * 0.3,
+          child: Lottie.asset('assets/animations/sun_cloud.json'),
+        );
+      case "light rain" ||
+            "moderate rain" ||
+            "heavy intensity rain" ||
+            "very heavy rain" ||
+            "extreme rain" ||
+            "freezing rain" ||
+            "light intensity shower rain" ||
+            "shower rain" ||
+            "heavy intensity shower rain" ||
+            "ragged shower rain":
+        return Container(
+          height: MediaQuery.sizeOf(context).height * 0.3,
+          child: Lottie.asset('assets/animations/rany.json'),
+        );
+      case "light snow" ||
+            "snow" ||
+            "heavy snow" ||
+            "sleet" ||
+            "light shower sleet" ||
+            "shower sleet" ||
+            "light rain and snow" ||
+            "rain and snow" ||
+            "light shower snow" ||
+            "shower snow" ||
+            "heavy shower snow":
+        return Container(
+          height: MediaQuery.sizeOf(context).height * 0.3,
+          child: Lottie.asset('assets/animations/snowy.json'),
+        );
+      case "thunderstorm with light rain" ||
+            "thunderstorm with rain" ||
+            "thunderstorm with heavy rain" ||
+            "light thunderstorm" ||
+            "thunderstorm" ||
+            "heavy thunderstorm" ||
+            "ragged thunderstorm" ||
+            "thunderstorm with light drizzle" ||
+            "thunderstorm with drizzle" ||
+            "thunderstorm with heavy drizzl":
+        return Container(
+          height: MediaQuery.sizeOf(context).height * 0.3,
+          child: Lottie.asset('assets/animations/stormy.json'),
+        );
+      default:
+        return Icon(Icons.help_outline, color: Colors.black45);
+    }
+  }
+
   Widget _weatherIcon() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          height: MediaQuery.sizeOf(context).height * 0.3,
-          child: Lottie.asset('assets/animations/weather.json'),
-        ),
+        getWeatherIcon(_weather?.weatherDescription),
         Text(_weather?.weatherDescription ?? ""),
       ],
     );
@@ -159,8 +221,7 @@ class _WeatherPageState extends State<WeatherPage> {
       height: MediaQuery.sizeOf(context).height * 0.15,
       width: MediaQuery.sizeOf(context).width * 0.8,
       decoration: BoxDecoration(
-          color: Colors.deepPurpleAccent,
-          borderRadius: BorderRadius.circular(20)),
+          color: Colors.blue, borderRadius: BorderRadius.circular(20)),
       padding: EdgeInsets.all(8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
