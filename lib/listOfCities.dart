@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/Models/citiesList.dart';
-// import 'package:weather_app/Models/city.dart';
+import 'package:weather_app/Models/city.dart';
+import 'package:weather_app/citiesTile.dart';
 
 class ListOfCities extends StatefulWidget {
   const ListOfCities({super.key});
@@ -38,14 +39,17 @@ class _ListOfCitiesState extends State<ListOfCities> {
                         padding: MaterialStateProperty.all(
                             EdgeInsets.symmetric(horizontal: 20)),
                       ),
+                      SizedBox(
+                        height: 20,
+                      ),
                       Text("List Of Cities:"),
-                      // Expanded(
-                      //     child: ListView.builder(
-                      //         itemCount: value.cityList.length,
-                      //         itemBuilder: (context, index) {
-                      //           // Cities eachCity = value.cityList[index];
-                      //           return Text("test");
-                      //         }))
+                      Expanded(
+                          child: ListView.builder(
+                              itemCount: value.cityList.length,
+                              itemBuilder: (context, index) {
+                                Cities eachCity = value.cityList[index];
+                                return CitiesTile(cityName: eachCity.cityName);
+                              }))
                     ],
                   ),
                 ),
