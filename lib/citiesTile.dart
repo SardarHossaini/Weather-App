@@ -16,7 +16,9 @@ class CitiesTile extends StatelessWidget {
       child: ListTile(
         onTap: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return WeatherPage();
+            return WeatherPage(
+              cityName: cityName,
+            );
           }));
         },
         iconColor: Colors.blue,

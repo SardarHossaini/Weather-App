@@ -6,7 +6,8 @@ import 'package:weather/weather.dart';
 import 'package:weather_app/Models/city.dart';
 
 class WeatherPage extends StatefulWidget {
-  const WeatherPage({super.key});
+  final String cityName;
+  const WeatherPage({super.key, required this.cityName});
 
   @override
   State<WeatherPage> createState() => _WeatherPageState();
@@ -19,7 +20,7 @@ class _WeatherPageState extends State<WeatherPage> {
   @override
   void initState() {
     super.initState();
-    _wf.currentWeatherByCityName("Kabul").then((w) => {
+    _wf.currentWeatherByCityName(widget.cityName).then((w) => {
           setState(() {
             _weather = w;
           })
@@ -30,6 +31,9 @@ class _WeatherPageState extends State<WeatherPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue[300],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+      ),
       body: _buildUI(),
     );
   }
