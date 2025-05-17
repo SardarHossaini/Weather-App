@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:weather/weather.dart';
 import 'package:weather_app/weather_model.dart';
-import 'package:weather_app/weather_service.dart';
 
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
@@ -17,29 +16,6 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-  // final _weatherService =
-  //     WeatherService(apiKey: '1858d0131bbbb81a86dde58a43529d3e');
-  // Weather? _weather;
-
-  // fetchWeather() async {
-  //   String cityName = await _weatherService.getCurrentCity();
-
-  //   try {
-  //     final weather = await _weatherService.getWeather(cityName);
-  //     setState(() {
-  //       _weather = weather;
-  //     });
-  //   } catch ($e) {
-  //     return $e;
-  //   }
-  // }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   fetchWeather();
-  // }
-
   final WeatherFactory _wf = WeatherFactory(api_key);
   Weather? _weather;
 
