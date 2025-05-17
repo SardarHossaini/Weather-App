@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather_app/cityList.dart';
 import 'package:weather_app/weather_page.dart';
 
 class IntroPage extends StatelessWidget {
@@ -54,7 +55,7 @@ class IntroPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                      return WeatherPage();
+                      return CityList();
                     }));
                   },
                   child: Text("Check Weater")),
