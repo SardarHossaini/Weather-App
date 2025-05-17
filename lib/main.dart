@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/cityList.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/Models/citiesList.dart';
 import 'package:weather_app/introPage.dart';
 
 void main() {
@@ -12,14 +13,17 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-          // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          // useMaterial3: true,
-          ),
-      // home: IntroPage(),
-      home: CityList(),
+    return ChangeNotifierProvider(
+      create: (context) => CitiesList(),
+      builder: (context, child) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+            // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            // useMaterial3: true,
+            ),
+        home: IntroPage(),
+        // home: ListOfCities(),
+      ),
     );
   }
 }
