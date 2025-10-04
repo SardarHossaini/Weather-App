@@ -68,6 +68,14 @@ class WeatherData {
     );
   }
 
+  get isDay => null;
+
+  get conditionIcon => null;
+
+  get visKm => null;
+
+  get pressureMb => null;
+
   static WeatherData? fromJsonString(String source) {
     try {
       return WeatherData.fromJson(json.decode(source) as Map<String, dynamic>);

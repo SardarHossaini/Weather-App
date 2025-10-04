@@ -43,14 +43,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
         final jsonBody = json.decode(res.body) as Map<String, dynamic>;
         final data = WeatherData.fromJson(jsonBody);
         if (!mounted) return;
-        // Debug log to show the API response in the console (trimmed)
-        try {
-          final trimmed = res.body.length > 200
-              ? res.body.substring(0, 200) + '...'
-              : res.body;
-          // ignore: avoid_print
-          print('Search API success for "$city": ${res.statusCode} - $trimmed');
-        } catch (_) {}
+        // successful search — navigate with pre-fetched data
         navigator.push(MaterialPageRoute(builder: (context) {
           return WeatherPage(cityName: city, initialData: data);
         }));
@@ -104,7 +97,8 @@ class _ListOfCitiesState extends State<ListOfCities> {
 
     final encoded = Uri.encodeComponent(trimmedCity);
     const key = api_key;
-    final url = Uri.parse('https://api.weatherapi.com/v1/current.json?key=$key&q=$encoded&aqi=no');
+    final url = Uri.parse(
+        'https://api.weatherapi.com/v1/current.json?key=$key&q=$encoded&aqi=no');
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     try {
@@ -126,8 +120,8 @@ class _ListOfCitiesState extends State<ListOfCities> {
           res.statusCode == 403 ||
           res.statusCode == 404) {
         if (!mounted) return;
-        messenger.showSnackBar(const SnackBar(
-            content: Text('City not found or invalid request')));
+        messenger.showSnackBar(
+            const SnackBar(content: Text('City not found or invalid request')));
       } else {
         if (!mounted) return;
         messenger.showSnackBar(SnackBar(
@@ -159,7 +153,8 @@ class _ListOfCitiesState extends State<ListOfCities> {
                   onPressed: () => Navigator.of(ctx).pop(),
                   child: const Text('Cancel')),
               ElevatedButton(
-                  onPressed: () => _validateAndAdd(_addController.text, context),
+                  onPressed: () =>
+                      _validateAndAdd(_addController.text, context),
                   child: const Text('Add'))
             ],
           );
@@ -170,87 +165,220 @@ class _ListOfCitiesState extends State<ListOfCities> {
   Widget build(BuildContext context) {
     return Consumer<CitiesList>(
       builder: (context, value, child) => Scaffold(
-        backgroundColor: Colors.blue[300],
+        backgroundColor: Colors.blue[700],
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: const Text('Blue Skies', style: TextStyle(color: Colors.white)),
+          title: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.wb_sunny, color: Colors.white, size: 28),
+              SizedBox(width: 8),
+              Text(
+                'Blue Skies',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
           centerTitle: true,
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(25),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Search Section
                 Container(
                   decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: [
                       const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Icon(Icons.search, color: Colors.blue),
+                        padding: EdgeInsets.only(left: 16, right: 8),
+                        child: Icon(Icons.search, color: Colors.blue, size: 24),
                       ),
                       Expanded(
                         child: TextField(
                           controller: _searchController,
                           textInputAction: TextInputAction.search,
                           onSubmitted: (_) => _searchCity(context),
+                          style: const TextStyle(fontSize: 16),
                           decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Search city...'),
+                            border: InputBorder.none,
+                            hintText: 'Search for a city...',
+                            hintStyle: TextStyle(color: Colors.grey),
+                          ),
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => _searchController.clear(),
-                        icon: const Icon(Icons.clear, color: Colors.blue),
-                      ),
-                      IconButton(
-                        onPressed: () => _searchCity(context),
-                        icon: const Icon(Icons.arrow_circle_right, color: Colors.blue),
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _searchController.clear(),
+                          icon: const Icon(Icons.clear,
+                              color: Colors.grey, size: 20),
+                          splashRadius: 20,
+                        ),
+                      Container(
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[600],
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          onPressed: () => _searchCity(context),
+                          icon: const Icon(Icons.search,
+                              color: Colors.white, size: 20),
+                          splashRadius: 20,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(
-                  height: 25,
+
+                const SizedBox(height: 32),
+
+                // Header Section
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.favorite,
+                            color: Colors.white, size: 24),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "Favorite Cities",
+                          style: TextStyle(
+                            fontSize: 26,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${value.cityList.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tap a city to view live weather. Use the + button to add more favorites.',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
-                const Text(
-                  "Favorites",
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Tap a city to view live weather. Use + to add favorites.',
-                  style: TextStyle(color: const Color.fromRGBO(255, 255, 255, 0.9)),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
+
+                const SizedBox(height: 24),
+
+                // Cities List
                 Expanded(
-                    child: ListView.builder(
-                        itemCount: value.cityList.length,
-                        itemBuilder: (context, index) {
-                          Cities eachCity = value.cityList[index];
-                          return CitiesTile(cityName: eachCity.cityName);
-                        }))
+                  child: value.cityList.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.location_city,
+                                size: 64,
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No favorite cities yet',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tap the + button to add your first city',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.6),
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        )
+                      : Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 15,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: ListView.builder(
+                              itemCount: value.cityList.length,
+                              itemBuilder: (context, index) {
+                                Cities eachCity = value.cityList[index];
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  child:
+                                      CitiesTile(cityName: eachCity.cityName),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                ),
               ],
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showAddCityDialog(context),
-          backgroundColor: Colors.blue[50],
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-          child: const Icon(Icons.add),
+        floatingActionButton: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: FloatingActionButton(
+            onPressed: () => _showAddCityDialog(context),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.blue[700],
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.add, size: 28),
+          ),
         ),
       ),
     );
