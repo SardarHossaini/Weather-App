@@ -1,29 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
-import 'package:weather/weather.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:weather_app/Models/weather_api_model.dart';
 import 'package:weather_app/Models/city.dart';
 
 class WeatherPage extends StatefulWidget {
   final String cityName;
-  const WeatherPage({super.key, required this.cityName});
+  final WeatherData? initialData;
+  const WeatherPage({super.key, required this.cityName, this.initialData});
 
   @override
   State<WeatherPage> createState() => _WeatherPageState();
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-  final WeatherFactory _wf = WeatherFactory(api_key);
-  Weather? _weather;
+  WeatherData? _weather;
+  String? _errorMessage;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _wf.currentWeatherByCityName(widget.cityName).then((w) => {
-          setState(() {
-            _weather = w;
-          })
+    if (widget.initialData != null) {
+      _weather = widget.initialData;
+      _loading = false;
+    } else {
+      _fetchWeather();
+    }
+  }
+
+  Future<void> _fetchWeather() async {
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+
+    final city = Uri.encodeComponent(widget.cityName);
+    const key = api_key;
+    final url = Uri.parse(
+        'https://api.weatherapi.com/v1/current.json?key=$key&q=$city&aqi=no');
+    try {
+      final res = await http.get(url);
+      if (res.statusCode == 200) {
+        final jsonBody = json.decode(res.body) as Map<String, dynamic>;
+        final data = WeatherData.fromJson(jsonBody);
+        setState(() {
+          _weather = data;
+          _errorMessage = null;
+          _loading = false;
         });
+      } else if (res.statusCode == 401) {
+        setState(() {
+          _errorMessage =
+              'Unauthorized (401): invalid API key. Please update api_key in lib/Models/city.dart';
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Error fetching weather (code ${res.statusCode})';
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Network error while fetching weather';
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -38,9 +84,32 @@ class _WeatherPageState extends State<WeatherPage> {
   }
 
   Widget _buildUI() {
-    if (_weather == null) {
+    if (_loading) {
       return const Center(
         child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _fetchWeather,
+                child: const Text('Retry'),
+              )
+            ],
+          ),
+        ),
       );
     }
     return SizedBox(
@@ -75,13 +144,13 @@ class _WeatherPageState extends State<WeatherPage> {
 
   Widget _locationHeader() {
     return Text(
-      _weather?.areaName ?? "",
+      _weather?.locationName ?? "",
       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
     );
   }
 
   Widget _dateTimeInfo() {
-    DateTime now = _weather!.date!;
+    DateTime now = _weather!.lastUpdated;
     return Column(
       children: [
         Text(
@@ -179,15 +248,15 @@ class _WeatherPageState extends State<WeatherPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        getWeatherIcon(_weather?.weatherDescription),
-        Text(_weather?.weatherDescription ?? ""),
+        getWeatherIcon(_weather?.conditionText),
+        Text(_weather?.conditionText ?? ""),
       ],
     );
   }
 
   Widget _currentTump() {
     return Text(
-      "${_weather?.temperature?.celsius?.toStringAsFixed(0)}° C",
+      _weather == null ? '-' : "${_weather!.tempC.toStringAsFixed(0)}° C",
       style: const TextStyle(fontSize: 20),
     );
   }
@@ -209,11 +278,11 @@ class _WeatherPageState extends State<WeatherPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Max: ${_weather?.tempMax?.celsius?.toStringAsFixed(0)}° C",
+                "Feels: ${_weather?.feelsLikeC != null ? _weather!.feelsLikeC!.toStringAsFixed(0) : '-'}° C",
                 style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
               Text(
-                "Min: ${_weather?.tempMin?.celsius?.toStringAsFixed(0)}° C",
+                "Precip: ${_weather?.precipMm != null ? _weather!.precipMm!.toStringAsFixed(1) : '-'} mm",
                 style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
             ],
@@ -224,11 +293,11 @@ class _WeatherPageState extends State<WeatherPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Wind: ${_weather?.windSpeed?.toStringAsFixed(0)}m/s",
+                "Wind: ${_weather?.windKph != null ? _weather!.windKph!.toStringAsFixed(0) : '-'} kph",
                 style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
               Text(
-                "Humidity: ${_weather?.humidity?.toStringAsFixed(0)}%",
+                "Humidity: ${_weather?.humidity ?? '-'}%",
                 style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
             ],
