@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/Models/citiesList.dart';
-import 'package:weather_app/introPage.dart';
 import 'package:weather_app/listOfCities.dart';
 
 void main() {
@@ -23,7 +22,7 @@ class MyApp extends StatelessWidget {
             // useMaterial3: true,
             ),
         // home: IntroPage(),
-        home: ListOfCities(),
+        home: const ListOfCities(),
       ),
     );
   }

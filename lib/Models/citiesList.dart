@@ -18,4 +18,10 @@ class CitiesList extends ChangeNotifier {
     _cities.add(city);
     notifyListeners();
   }
+
+  void removeCity(String cityName) {
+    _cities
+        .removeWhere((c) => c.cityName.toLowerCase() == cityName.toLowerCase());
+    notifyListeners();
+  }
 }

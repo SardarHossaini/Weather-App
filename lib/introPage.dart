@@ -8,7 +8,7 @@ class IntroPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blue[300],
-      body: Container(
+      body: SizedBox(
         width: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -17,7 +17,7 @@ class IntroPage extends StatelessWidget {
               'assets/images/background.png',
               height: 300,
             ),
-            SizedBox(
+            const SizedBox(
               height: 40,
             ),
             Text(
@@ -27,10 +27,10 @@ class IntroPage extends StatelessWidget {
                   fontSize: 26,
                   fontWeight: FontWeight.bold),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
-            Container(
+            SizedBox(
               width: 330,
               child: Text(
                 "Your smart and simple way to stay updated with real-time weather.",
@@ -38,13 +38,13 @@ class IntroPage extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 40,
             ),
             Container(
               width: double.infinity,
               height: 50,
-              margin: EdgeInsets.symmetric(horizontal: 30),
+              margin: const EdgeInsets.symmetric(horizontal: 30),
               child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue[700],
@@ -54,10 +54,10 @@ class IntroPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                      return ListOfCities();
+                      return const ListOfCities();
                     }));
                   },
-                  child: Text("Check Weater")),
+                  child: const Text("Check Weater")),
             )
           ],
         ),
