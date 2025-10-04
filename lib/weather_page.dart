@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:weather/weather.dart';
@@ -77,7 +76,7 @@ class _WeatherPageState extends State<WeatherPage> {
   Widget _locationHeader() {
     return Text(
       _weather?.areaName ?? "",
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
     );
   }
 
@@ -87,9 +86,9 @@ class _WeatherPageState extends State<WeatherPage> {
       children: [
         Text(
           DateFormat('h:mm a').format(now),
-          style: TextStyle(fontSize: 28),
+          style: const TextStyle(fontSize: 28),
         ),
-        SizedBox(
+        const SizedBox(
           height: 10,
         ),
         Row(
@@ -99,11 +98,11 @@ class _WeatherPageState extends State<WeatherPage> {
           children: [
             Text(
               DateFormat('EEEE').format(now),
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             Text(
               "  ${DateFormat('d.m.y').format(now)}",
-              style: TextStyle(fontWeight: FontWeight.w400),
+              style: const TextStyle(fontWeight: FontWeight.w400),
             ),
           ],
         )
@@ -114,7 +113,7 @@ class _WeatherPageState extends State<WeatherPage> {
   Widget getWeatherIcon(String? description) {
     switch (description) {
       case "clear sky":
-        return Container(
+        return SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.3,
           child: Lottie.asset('assets/animations/suny.json'),
         );
@@ -122,7 +121,7 @@ class _WeatherPageState extends State<WeatherPage> {
             "scattered clouds" ||
             "broken clouds" ||
             "overcast clouds":
-        return Container(
+        return SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.3,
           child: Lottie.asset('assets/animations/sun_cloud.json'),
         );
@@ -136,7 +135,7 @@ class _WeatherPageState extends State<WeatherPage> {
             "shower rain" ||
             "heavy intensity shower rain" ||
             "ragged shower rain":
-        return Container(
+        return SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.3,
           child: Lottie.asset('assets/animations/rany.json'),
         );
@@ -151,7 +150,7 @@ class _WeatherPageState extends State<WeatherPage> {
             "light shower snow" ||
             "shower snow" ||
             "heavy shower snow":
-        return Container(
+        return SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.3,
           child: Lottie.asset('assets/animations/snowy.json'),
         );
@@ -165,12 +164,12 @@ class _WeatherPageState extends State<WeatherPage> {
             "thunderstorm with light drizzle" ||
             "thunderstorm with drizzle" ||
             "thunderstorm with heavy drizzl":
-        return Container(
+        return SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.3,
           child: Lottie.asset('assets/animations/stormy.json'),
         );
       default:
-        return Icon(Icons.help_outline, color: Colors.black45);
+        return const Icon(Icons.help_outline, color: Colors.black45);
     }
   }
 
@@ -189,7 +188,7 @@ class _WeatherPageState extends State<WeatherPage> {
   Widget _currentTump() {
     return Text(
       "${_weather?.temperature?.celsius?.toStringAsFixed(0)}° C",
-      style: TextStyle(fontSize: 20),
+      style: const TextStyle(fontSize: 20),
     );
   }
 
@@ -199,7 +198,7 @@ class _WeatherPageState extends State<WeatherPage> {
       width: MediaQuery.sizeOf(context).width * 0.8,
       decoration: BoxDecoration(
           color: Colors.blue, borderRadius: BorderRadius.circular(20)),
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -211,11 +210,11 @@ class _WeatherPageState extends State<WeatherPage> {
             children: [
               Text(
                 "Max: ${_weather?.tempMax?.celsius?.toStringAsFixed(0)}° C",
-                style: TextStyle(color: Colors.white, fontSize: 15),
+                style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
               Text(
                 "Min: ${_weather?.tempMin?.celsius?.toStringAsFixed(0)}° C",
-                style: TextStyle(color: Colors.white, fontSize: 15),
+                style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
             ],
           ),
@@ -226,11 +225,11 @@ class _WeatherPageState extends State<WeatherPage> {
             children: [
               Text(
                 "Wind: ${_weather?.windSpeed?.toStringAsFixed(0)}m/s",
-                style: TextStyle(color: Colors.white, fontSize: 15),
+                style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
               Text(
                 "Humidity: ${_weather?.humidity?.toStringAsFixed(0)}%",
-                style: TextStyle(color: Colors.white, fontSize: 15),
+                style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
             ],
           ),

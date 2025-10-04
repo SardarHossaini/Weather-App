@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:weather_app/weather_page.dart';
 
@@ -12,7 +13,7 @@ class CitiesTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         color: Colors.blue[50],
       ),
-      margin: EdgeInsets.symmetric(vertical: 5),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       child: ListTile(
         onTap: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -23,8 +24,8 @@ class CitiesTile extends StatelessWidget {
         },
         iconColor: Colors.blue,
         title: Text(cityName),
-        leading: Icon(Icons.info),
-        trailing: Icon(Icons.arrow_circle_right),
+        leading: const Icon(Icons.info),
+        trailing: const Icon(Icons.arrow_circle_right),
       ),
     );
   }

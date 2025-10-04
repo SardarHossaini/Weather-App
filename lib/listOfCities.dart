@@ -25,24 +25,24 @@ class _ListOfCitiesState extends State<ListOfCities> {
               children: [
                 SearchBar(
                   hintText: "Enter your city name ...",
-                  backgroundColor: MaterialStateProperty.all(Colors.blue[50]),
-                  leading: Icon(
+                  backgroundColor: WidgetStateProperty.all(Colors.blue[50]),
+                  leading: const Icon(
                     Icons.search,
                     color: Colors.blue,
                   ),
-                  trailing: [
+                  trailing: const [
                     Icon(
                       Icons.arrow_circle_right,
                       color: Colors.blue,
                     )
                   ],
-                  padding: MaterialStateProperty.all(
-                      EdgeInsets.symmetric(horizontal: 20)),
+                  padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(horizontal: 20)),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 25,
                 ),
-                Text(
+                const Text(
                   "List Of Cities:",
                   textAlign: TextAlign.start,
                   style: TextStyle(
@@ -50,7 +50,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
                       color: Colors.white,
                       fontWeight: FontWeight.bold),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 Expanded(
@@ -69,7 +69,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
           backgroundColor: Colors.blue[50],
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-          child: Icon(Icons.add),
+          child: const Icon(Icons.add),
         ),
       ),
     );
