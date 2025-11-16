@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/Models/citiesList.dart';
-import 'package:weather_app/introPage.dart';
 import 'package:weather_app/listOfCities.dart';
 
 void main() {
@@ -19,8 +18,6 @@ class MyApp extends StatelessWidget {
       builder: (context, child) => MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-            // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            // useMaterial3: true,
             ),
         // home: IntroPage(),
         home: ListOfCities(),
