@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
             ),
         // home: IntroPage(),
-        home: ListOfCities(),
+        home: const ListOfCities(),
       ),
     );
   }
