@@ -108,7 +108,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
       return;
     }
 
-    // If no local results, search via API
+    // If no local results, search via API for multiple cities
     setState(() {
       _isSearchingAPI = true;
       _searchResults.clear();
@@ -116,73 +116,132 @@ class _ListOfCitiesState extends State<ListOfCities> {
     });
 
     try {
-      // Direct API call to ensure it works
+      // Use WeatherAPI's search/autocomplete endpoint
       final encodedQuery = Uri.encodeComponent(query);
       const apiKey = '0380d0e84f324486aac191450251611';
       final url = Uri.parse(
-          'http://api.weatherapi.com/v1/current.json?key=$apiKey&q=$encodedQuery&aqi=no');
+          'http://api.weatherapi.com/v1/search.json?key=$apiKey&q=$encodedQuery');
 
-      print('🔍 Searching for city: $query');
-      print('🌐 API URL: $url');
+      print('🔍 Searching for cities containing: $query');
+      print('🌐 Search API URL: $url');
 
       final response = await http.get(url);
 
-      print('📡 API Response Status: ${response.statusCode}');
+      print('📡 Search API Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print('✅ City found: ${data['location']['name']}');
+        final List<dynamic> searchResults = json.decode(response.body);
+        print('✅ Found ${searchResults.length} cities matching "$query"');
 
-        final weatherData = WeatherData.fromJson(data);
-        setState(() {
-          _searchResults = [weatherData];
-          _isSearchingAPI = false;
-        });
-      } else if (response.statusCode == 400) {
-        print('❌ City not found - 400 Bad Request');
+        if (searchResults.isNotEmpty) {
+          // Fetch weather data for each found city (limit to 8 to avoid too many API calls)
+          final List<WeatherData> weatherDataList = [];
+
+          for (final cityData in searchResults.take(8)) {
+            try {
+              final cityName = cityData['name']?.toString() ?? '';
+              final country = cityData['country']?.toString() ?? '';
+              final region = cityData['region']?.toString() ?? '';
+
+              if (cityName.isNotEmpty) {
+                print('🌆 Fetching weather for: $cityName, $region, $country');
+
+                final weatherUrl = Uri.parse(
+                    'http://api.weatherapi.com/v1/current.json?key=$apiKey&q=${Uri.encodeComponent(cityName)}&aqi=no');
+
+                final weatherResponse = await http.get(weatherUrl);
+                if (weatherResponse.statusCode == 200) {
+                  final weatherJson = json.decode(weatherResponse.body);
+                  final weatherData = WeatherData.fromJson(weatherJson);
+                  weatherDataList.add(weatherData);
+                  print('✅ Added: $cityName');
+                } else {
+                  print(
+                      '⚠️ Failed to get weather for: $cityName (${weatherResponse.statusCode})');
+                }
+              }
+            } catch (e) {
+              print('💥 Error fetching weather for city: $e');
+            }
+
+            // Small delay to avoid hitting API rate limits
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+
+          setState(() {
+            _searchResults = weatherDataList;
+            _isSearchingAPI = false;
+          });
+
+          print('🎯 Total cities with weather data: ${weatherDataList.length}');
+        } else {
+          setState(() {
+            _searchResults = [];
+            _isSearchingAPI = false;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('No cities found matching "$query"'),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      } else {
+        print('❌ Search API Error: ${response.statusCode}');
         setState(() {
           _searchResults = [];
           _isSearchingAPI = false;
+        });
+        // Fallback to single city search
+        _fallbackSingleCitySearch(query);
+      }
+    } catch (e) {
+      print('💥 Error in search API call: $e');
+      setState(() {
+        _searchResults = [];
+        _isSearchingAPI = false;
+      });
+      // Fallback to single city search
+      _fallbackSingleCitySearch(query);
+    }
+  }
+
+// Fallback method for single city search
+  Future<void> _fallbackSingleCitySearch(String query) async {
+    try {
+      const apiKey = '0380d0e84f324486aac191450251611';
+      final url = Uri.parse(
+          'http://api.weatherapi.com/v1/current.json?key=$apiKey&q=${Uri.encodeComponent(query)}&aqi=no');
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final weatherData = WeatherData.fromJson(data);
+        setState(() {
+          _searchResults = [weatherData];
+        });
+      } else {
+        setState(() {
+          _searchResults = [];
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('City "$query" not found'),
               backgroundColor: Colors.orange,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        print('❌ API Error: ${response.statusCode}');
-        setState(() {
-          _searchResults = [];
-          _isSearchingAPI = false;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('API Error: ${response.statusCode}'),
-              backgroundColor: Colors.red,
             ),
           );
         }
       }
     } catch (e) {
-      print('💥 Error in API call: $e');
+      print('💥 Error in fallback search: $e');
       setState(() {
         _searchResults = [];
-        _isSearchingAPI = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Network error: Please check your internet connection'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
@@ -456,35 +515,52 @@ class _ListOfCitiesState extends State<ListOfCities> {
 
   Widget _buildSearchResultsList() {
     return Expanded(
-      child: ListView.builder(
-        physics: const BouncingScrollPhysics(),
-        itemCount: _searchResults.length,
-        itemBuilder: (context, index) {
-          final weatherData = _searchResults[index];
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              "Found ${_searchResults.length} cities - Tap heart to add to favorites",
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) {
+                final weatherData = _searchResults[index];
 
-          return CitiesTile(
-            cityName: weatherData.locationName,
-            temperature: weatherData.tempC,
-            weatherCondition: weatherData.conditionText,
-            weatherIcon: weatherData.conditionIcon,
-            isCurrentLocation: false,
-            isFavorite: false, // Not in favorites yet
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CityDetailsPage(
-                    cityName: weatherData.locationName,
-                    isFavorite: false,
-                  ),
-                ),
-              );
-            },
-            onFavoriteTap: () {
-              _addToFavorites(weatherData);
-            },
-          );
-        },
+                return CitiesTile(
+                  cityName: weatherData.locationName,
+                  temperature: weatherData.tempC,
+                  weatherCondition: weatherData.conditionText,
+                  weatherIcon: weatherData.conditionIcon,
+                  isCurrentLocation: false,
+                  isFavorite: false, // Not in favorites yet
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CityDetailsPage(
+                          cityName: weatherData.locationName,
+                          isFavorite: false,
+                        ),
+                      ),
+                    );
+                  },
+                  onFavoriteTap: () {
+                    _addToFavorites(weatherData);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

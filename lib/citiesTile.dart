@@ -82,14 +82,13 @@ class CitiesTile extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
-                        spacing: -5,
                         children: [
                           // Temperature
                           Text(
                             '${temperature.toStringAsFixed(0)}°',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 23,
+                              fontSize: 22,
                               fontWeight: FontWeight.w300,
                             ),
                           ),
@@ -97,8 +96,8 @@ class CitiesTile extends StatelessWidget {
                           // Weather Icon
                           Image.network(
                             'https:$weatherIcon',
-                            width: 30,
-                            height: 30,
+                            width: 26,
+                            height: 26,
                             errorBuilder: (context, error, stackTrace) {
                               return _buildWeatherIcon(weatherCondition);
                             },

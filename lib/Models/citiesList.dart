@@ -2,13 +2,7 @@ import 'package:flutter/material.dart';
 import 'city.dart';
 
 class CitiesList extends ChangeNotifier {
-  final List<Cities> _cities = [
-    Cities(cityName: "Kabul"),
-    Cities(cityName: "Herat"),
-    Cities(cityName: "Khandahar"),
-    Cities(cityName: "Ghor"),
-    Cities(cityName: "Konar"),
-  ];
+  final List<Cities> _cities = [];
 
   List<Cities> get cityList => _cities;
 
