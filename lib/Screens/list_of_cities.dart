@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:weather_app/citiesTile.dart';
+import 'package:weather_app/widgets/citiesTile.dart';
 import '../models/citiesList.dart';
 import '../models/city.dart';
 import 'city_details_page.dart';
@@ -206,7 +206,8 @@ class _ListOfCitiesState extends State<ListOfCities> {
           _searchResults = [];
         });
       }
-    } catch (e) {;
+    } catch (e) {
+      ;
       setState(() {
         _searchResults = [];
       });
@@ -227,8 +228,6 @@ class _ListOfCitiesState extends State<ListOfCities> {
   void _addToFavorites(WeatherData weatherData) {
     final citiesList = Provider.of<CitiesList>(context, listen: false);
     final cityName = weatherData.locationName;
-
-    
 
     // Add city to favorites
     citiesList.addCity(cityName);

@@ -65,7 +65,7 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
     if (condition.contains('sunny') || condition.contains('clear')) {
       return 'assets/lottie/sunny.json';
     } else if (condition.contains('partly cloudy')) {
-      return 'assets/lottie/cloudy.json';
+      return 'assets/lottie/sun_cloud.json';
     } else if (condition.contains('cloud')) {
       return 'assets/lottie/cloudy.json';
     } else if (condition.contains('rain') || condition.contains('drizzle')) {

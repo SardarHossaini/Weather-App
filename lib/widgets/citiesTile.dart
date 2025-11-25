@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/weather_page.dart';
+import 'package:weather_app/widgets/weather_page.dart';
 import 'package:weather_app/Models/city.dart' hide api_key;
 import 'package:weather_app/Models/weather_api_model.dart';
 import 'package:http/http.dart' as http;
