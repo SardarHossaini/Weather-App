@@ -122,16 +122,10 @@ class _ListOfCitiesState extends State<ListOfCities> {
       final url = Uri.parse(
           'http://api.weatherapi.com/v1/search.json?key=$apiKey&q=$encodedQuery');
 
-      print('🔍 Searching for cities containing: $query');
-      print('🌐 Search API URL: $url');
-
       final response = await http.get(url);
-
-      print('📡 Search API Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final List<dynamic> searchResults = json.decode(response.body);
-        print('✅ Found ${searchResults.length} cities matching "$query"');
 
         if (searchResults.isNotEmpty) {
           // Fetch weather data for each found city (limit to 8 to avoid too many API calls)
@@ -144,7 +138,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
               final region = cityData['region']?.toString() ?? '';
 
               if (cityName.isNotEmpty) {
-                print('🌆 Fetching weather for: $cityName, $region, $country');
+                ;
 
                 final weatherUrl = Uri.parse(
                     'http://api.weatherapi.com/v1/current.json?key=$apiKey&q=${Uri.encodeComponent(cityName)}&aqi=no');
@@ -154,10 +148,6 @@ class _ListOfCitiesState extends State<ListOfCities> {
                   final weatherJson = json.decode(weatherResponse.body);
                   final weatherData = WeatherData.fromJson(weatherJson);
                   weatherDataList.add(weatherData);
-                  print('✅ Added: $cityName');
-                } else {
-                  print(
-                      '⚠️ Failed to get weather for: $cityName (${weatherResponse.statusCode})');
                 }
               }
             } catch (e) {
@@ -172,25 +162,13 @@ class _ListOfCitiesState extends State<ListOfCities> {
             _searchResults = weatherDataList;
             _isSearchingAPI = false;
           });
-
-          print('🎯 Total cities with weather data: ${weatherDataList.length}');
         } else {
           setState(() {
             _searchResults = [];
             _isSearchingAPI = false;
           });
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('No cities found matching "$query"'),
-                backgroundColor: Colors.orange,
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
         }
       } else {
-        print('❌ Search API Error: ${response.statusCode}');
         setState(() {
           _searchResults = [];
           _isSearchingAPI = false;
@@ -199,7 +177,6 @@ class _ListOfCitiesState extends State<ListOfCities> {
         _fallbackSingleCitySearch(query);
       }
     } catch (e) {
-      print('💥 Error in search API call: $e');
       setState(() {
         _searchResults = [];
         _isSearchingAPI = false;
@@ -228,17 +205,8 @@ class _ListOfCitiesState extends State<ListOfCities> {
         setState(() {
           _searchResults = [];
         });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('City "$query" not found'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
       }
-    } catch (e) {
-      print('💥 Error in fallback search: $e');
+    } catch (e) {;
       setState(() {
         _searchResults = [];
       });
@@ -260,16 +228,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
     final citiesList = Provider.of<CitiesList>(context, listen: false);
     final cityName = weatherData.locationName;
 
-    // Check if city already exists in favorites
-    if (citiesList.containsCity(cityName)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$cityName is already in your favorites'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
+    
 
     // Add city to favorites
     citiesList.addCity(cityName);

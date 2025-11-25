@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
 import '../models/citiesList.dart';
 import '../services/weather_service.dart';
 
 class CityDetailsPage extends StatefulWidget {
   final String cityName;
   final bool isFavorite;
+  final Map<String, dynamic>? weatherData;
 
   const CityDetailsPage({
     super.key,
     required this.cityName,
     required this.isFavorite,
+    this.weatherData,
   });
 
   @override
@@ -28,6 +31,16 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
   }
 
   Future<void> _fetchWeatherData() async {
+    // If weatherData is provided, use it directly
+    if (widget.weatherData != null) {
+      setState(() {
+        _weatherData = widget.weatherData;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // Otherwise fetch from API
     final data = await WeatherService.fetchWeatherData(widget.cityName);
     setState(() {
       _weatherData = data;
@@ -43,6 +56,33 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
       citiesList.addCity(widget.cityName);
     }
     Navigator.pop(context);
+  }
+
+  // Map weather condition to Lottie animation
+  String _getLottieAsset(String weatherCondition) {
+    final condition = weatherCondition.toLowerCase();
+
+    if (condition.contains('sunny') || condition.contains('clear')) {
+      return 'assets/lottie/sunny.json';
+    } else if (condition.contains('partly cloudy')) {
+      return 'assets/lottie/cloudy.json';
+    } else if (condition.contains('cloud')) {
+      return 'assets/lottie/cloudy.json';
+    } else if (condition.contains('rain') || condition.contains('drizzle')) {
+      return 'assets/lottie/rany.json';
+    } else if (condition.contains('snow') || condition.contains('sleet')) {
+      return 'assets/lottie/snowy.json';
+    } else if (condition.contains('thunder') || condition.contains('storm')) {
+      return 'assets/lottie/sun_storm.json';
+    } else if (condition.contains('fog') ||
+        condition.contains('mist') ||
+        condition.contains('haze')) {
+      return 'assets/lottie/stormy.json';
+    } else if (condition.contains('wind')) {
+      return 'assets/lottie/sun_ran.json';
+    } else {
+      return 'assets/lottie/cloudy.json'; // Default fallback
+    }
   }
 
   @override
@@ -127,8 +167,23 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
   Widget _buildLoadingState() {
     return Expanded(
       child: Center(
-        child: CircularProgressIndicator(
-          color: Colors.white.withOpacity(0.7),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Lottie.asset(
+              'assets/lottie/loading.json', // You can create a loading animation
+              width: 100,
+              height: 100,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Loading weather data...",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 16,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -140,10 +195,10 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.white,
-              size: 64,
+            Lottie.asset(
+              'assets/lottie/error.json', // Error animation
+              width: 120,
+              height: 120,
             ),
             const SizedBox(height: 16),
             const Text(
@@ -156,6 +211,10 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _fetchWeatherData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4A6FA5),
+                foregroundColor: Colors.white,
+              ),
               child: const Text("Try Again"),
             ),
           ],
@@ -165,85 +224,92 @@ class _CityDetailsPageState extends State<CityDetailsPage> {
   }
 
   Widget _buildWeatherContent() {
+    final condition =
+        _weatherData!['current']['condition']['text'] ?? 'Unknown';
+    final lottieAsset = _getLottieAsset(condition);
+
     return Expanded(
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _buildTemperatureCard(),
+            // Temperature Card with Lottie Animation
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF1F3A5F).withOpacity(0.8),
+                    const Color(0xFF4A6FA5).withOpacity(0.6),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '${_weatherData!['current']['temp_c'].toStringAsFixed(0)}°',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 64,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Lottie Animation instead of static image
+                  Lottie.asset(
+                    lottieAsset,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.contain,
+                  ),
+
+                  const SizedBox(height: 8),
+                  Text(
+                    condition,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildAdditionalDetails(),
+
+            // Additional Details
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  _buildDetailRow('Feels Like',
+                      '${_weatherData!['current']['feelslike_c']}°'),
+                  _buildDetailRow(
+                      'Humidity', '${_weatherData!['current']['humidity']}%'),
+                  _buildDetailRow('Wind Speed',
+                      '${_weatherData!['current']['wind_kph']} km/h'),
+                  _buildDetailRow('Pressure',
+                      '${_weatherData!['current']['pressure_mb']} mb'),
+                  _buildDetailRow(
+                      'Visibility', '${_weatherData!['current']['vis_km']} km'),
+                  _buildDetailRow(
+                      'UV Index', '${_weatherData!['current']['uv']}'),
+                ],
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTemperatureCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF1F3A5F).withOpacity(0.8),
-            const Color(0xFF4A6FA5).withOpacity(0.6),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-        ),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '${_weatherData!['current']['temp_c'].toStringAsFixed(0)}°',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 64,
-              fontWeight: FontWeight.w300,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Image.network(
-            'https:${_weatherData!['current']['condition']['icon']}',
-            width: 64,
-            height: 64,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _weatherData!['current']['condition']['text'],
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdditionalDetails() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          _buildDetailRow(
-              'Feels Like', '${_weatherData!['current']['feelslike_c']}°'),
-          _buildDetailRow(
-              'Humidity', '${_weatherData!['current']['humidity']}%'),
-          _buildDetailRow(
-              'Wind Speed', '${_weatherData!['current']['wind_kph']} km/h'),
-          _buildDetailRow(
-              'Pressure', '${_weatherData!['current']['pressure_mb']} mb'),
-        ],
       ),
     );
   }
