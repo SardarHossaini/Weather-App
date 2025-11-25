@@ -191,20 +191,20 @@ class CitiesTile extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
+        spacing: -5,
         children: [
           Text(
             '${temperature.toStringAsFixed(0)}°',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w300,
+              fontSize: 22,
+              fontWeight: FontWeight.w200,
             ),
           ),
-          const SizedBox(height: 4),
           Image.network(
             'https:$weatherIcon',
-            width: 20,
-            height: 20,
+            width: 32,
+            height: 32,
             errorBuilder: (context, error, stackTrace) {
               return _buildWeatherIcon(weatherCondition);
             },
