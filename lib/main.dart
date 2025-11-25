@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:weather_app/Screens/splash_screen.dart';
 import 'models/citiesList.dart';
-import 'screens/list_of_cities.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Weather App',
         theme: ThemeData.dark(),
-        home: const ListOfCities(),
+        home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
     );
