@@ -2,79 +2,134 @@
 
 import 'dart:convert';
 
+const String api_key = '0380d0e84f324486aac191450251611';
+
 class WeatherData {
   final String locationName;
   final DateTime lastUpdated;
   final String conditionText;
+  final String conditionIcon;
   final double tempC;
-  final double? tempF;
-  final double? windKph;
+  final double tempF;
+  final double windKph;
   final int humidity;
-  final double? tempMinC;
-  final double? tempMaxC;
-  final double? feelsLikeC;
-  final double? precipMm;
+  final double feelsLikeC;
+  final double precipMm;
+  final double pressureMb;
+  final double visKm;
+  final int isDay;
 
   WeatherData({
     required this.locationName,
     required this.lastUpdated,
     required this.conditionText,
+    required this.conditionIcon,
     required this.tempC,
-    this.tempF,
-    this.windKph,
+    required this.tempF,
+    required this.windKph,
     required this.humidity,
-    this.tempMinC,
-    this.tempMaxC,
-    this.feelsLikeC,
-    this.precipMm,
+    required this.feelsLikeC,
+    required this.precipMm,
+    required this.pressureMb,
+    required this.visKm,
+    required this.isDay,
   });
 
   factory WeatherData.fromJson(Map<String, dynamic> json) {
-    final location = json['location'] ?? {};
-    final current = json['current'] ?? {};
-    final condition = current['condition'] ?? {};
+    final location = json['location'] ?? <String, dynamic>{};
+    final current = json['current'] ?? <String, dynamic>{};
+    final condition = current['condition'] ?? <String, dynamic>{};
 
-    // WeatherAPI returns last_updated as string like "2025-10-04 10:00"
+    // Parse last_updated date safely
     DateTime parsedDate;
     try {
-      parsedDate = DateTime.parse(
-          (current['last_updated'] ?? location['localtime'])
-              .toString()
-              .replaceAll(' ', 'T'));
+      final lastUpdatedStr = current['last_updated']?.toString() ?? '';
+      if (lastUpdatedStr.isNotEmpty) {
+        parsedDate = DateTime.parse(lastUpdatedStr.replaceAll(' ', 'T'));
+      } else {
+        parsedDate = DateTime.now();
+      }
     } catch (_) {
       parsedDate = DateTime.now();
     }
 
+    // Safe parsing with null checks
     return WeatherData(
-      locationName: location['name'] ?? '',
+      locationName: _getString(location, 'name', 'Unknown City'),
       lastUpdated: parsedDate,
-      conditionText: condition['text'] ?? '',
-      tempC: (current['temp_c'] ?? 0).toDouble(),
-      tempF: current['temp_f'] != null
-          ? (current['temp_f'] as num).toDouble()
-          : null,
-      windKph: current['wind_kph'] != null
-          ? (current['wind_kph'] as num).toDouble()
-          : null,
-      humidity: (current['humidity'] ?? 0) as int,
-      tempMinC: null,
-      tempMaxC: null,
-      feelsLikeC: current['feelslike_c'] != null
-          ? (current['feelslike_c'] as num).toDouble()
-          : null,
-      precipMm: current['precip_mm'] != null
-          ? (current['precip_mm'] as num).toDouble()
-          : null,
+      conditionText: _getString(condition, 'text', 'Unknown'),
+      conditionIcon: _getString(condition, 'icon', ''),
+      tempC: _getDouble(current, 'temp_c', 0.0),
+      tempF: _getDouble(current, 'temp_f', 0.0),
+      windKph: _getDouble(current, 'wind_kph', 0.0),
+      humidity: _getInt(current, 'humidity', 0),
+      feelsLikeC: _getDouble(current, 'feelslike_c', 0.0),
+      precipMm: _getDouble(current, 'precip_mm', 0.0),
+      pressureMb: _getDouble(current, 'pressure_mb', 0.0),
+      visKm: _getDouble(current, 'vis_km', 0.0),
+      isDay: _getInt(current, 'is_day', 1),
     );
   }
 
-  get isDay => null;
+  // Helper methods for safe data extraction
+  static String _getString(
+      Map<String, dynamic> map, String key, String defaultValue) {
+    try {
+      final value = map[key];
+      if (value == null) return defaultValue;
+      return value.toString();
+    } catch (_) {
+      return defaultValue;
+    }
+  }
 
-  get conditionIcon => null;
+  static double _getDouble(
+      Map<String, dynamic> map, String key, double defaultValue) {
+    try {
+      final value = map[key];
+      if (value == null) return defaultValue;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      return double.tryParse(value.toString()) ?? defaultValue;
+    } catch (_) {
+      return defaultValue;
+    }
+  }
 
-  get visKm => null;
+  static int _getInt(Map<String, dynamic> map, String key, int defaultValue) {
+    try {
+      final value = map[key];
+      if (value == null) return defaultValue;
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      return int.tryParse(value.toString()) ?? defaultValue;
+    } catch (_) {
+      return defaultValue;
+    }
+  }
 
-  get pressureMb => null;
+  // Convert to simple map for easy use in UI
+  Map<String, dynamic> toSimpleMap() {
+    return {
+      'location': {'name': locationName},
+      'current': {
+        'temp_c': tempC,
+        'temp_f': tempF,
+        'condition': {
+          'text': conditionText,
+          'icon': conditionIcon,
+        },
+        'wind_kph': windKph,
+        'humidity': humidity,
+        'feelslike_c': feelsLikeC,
+        'precip_mm': precipMm,
+        'pressure_mb': pressureMb,
+        'vis_km': visKm,
+        'is_day': isDay,
+        'last_updated': lastUpdated.toIso8601String(),
+      }
+    };
+  }
 
   static WeatherData? fromJsonString(String source) {
     try {

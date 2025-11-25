@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:weather_app/citiesTile.dart';
 import '../models/citiesList.dart';
 import '../models/city.dart';
-import '../widgets/search_dialog.dart';
 import 'city_details_page.dart';
 import '../services/weather_service.dart';
+import '../models/weather_api_model.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ListOfCities extends StatefulWidget {
   const ListOfCities({super.key});
@@ -16,17 +19,29 @@ class ListOfCities extends StatefulWidget {
 
 class _ListOfCitiesState extends State<ListOfCities> {
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _dialogSearchController = TextEditingController();
-  bool _isSearching = false;
-  List<Cities> _filteredCities = [];
   final FocusNode _searchFocusNode = FocusNode();
   final Map<String, Map<String, dynamic>> _cityWeatherData = {};
   bool _isLoading = true;
+
+  // Search states
+  bool _isSearching = false;
+  List<Cities> _filteredCities = [];
+  List<WeatherData> _searchResults = [];
+  bool _isSearchingAPI = false;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
     _loadInitialWeatherData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadInitialWeatherData() async {
@@ -52,56 +67,172 @@ class _ListOfCitiesState extends State<ListOfCities> {
     });
   }
 
-  Future<void> _searchAndAddCity(String cityName) async {
-    final data = await WeatherService.fetchWeatherData(cityName);
-    if (data != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CityDetailsPage(
-            cityName: cityName,
-            isFavorite: false,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('City not found: $cityName'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  void _onSearchChanged(String query) {
+    // Cancel previous timer
+    _debounceTimer?.cancel();
+
+    if (query.isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _isSearchingAPI = false;
+        _searchResults.clear();
+        _filteredCities.clear();
+      });
+      return;
     }
+
+    setState(() {
+      _isSearching = true;
+    });
+
+    // Debounce search to avoid too many API calls
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _performSearch(query);
+    });
   }
 
-  void _filterCities(String query, CitiesList citiesList) {
+  Future<void> _performSearch(String query) async {
+    final citiesList = Provider.of<CitiesList>(context, listen: false);
+
+    // First search in local favorites
+    final localResults = citiesList.cityList.where((city) {
+      return city.cityName.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    if (localResults.isNotEmpty) {
+      setState(() {
+        _filteredCities = localResults;
+        _searchResults.clear();
+        _isSearchingAPI = false;
+      });
+      return;
+    }
+
+    // If no local results, search via API
     setState(() {
-      _isSearching = query.isNotEmpty;
-      if (_isSearching) {
-        _filteredCities = citiesList.cityList.where((city) {
-          return city.cityName.toLowerCase().contains(query.toLowerCase());
-        }).toList();
-      }
+      _isSearchingAPI = true;
+      _searchResults.clear();
+      _filteredCities.clear();
     });
+
+    try {
+      // Direct API call to ensure it works
+      final encodedQuery = Uri.encodeComponent(query);
+      const apiKey = '0380d0e84f324486aac191450251611';
+      final url = Uri.parse(
+          'http://api.weatherapi.com/v1/current.json?key=$apiKey&q=$encodedQuery&aqi=no');
+
+      print('🔍 Searching for city: $query');
+      print('🌐 API URL: $url');
+
+      final response = await http.get(url);
+
+      print('📡 API Response Status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('✅ City found: ${data['location']['name']}');
+
+        final weatherData = WeatherData.fromJson(data);
+        setState(() {
+          _searchResults = [weatherData];
+          _isSearchingAPI = false;
+        });
+      } else if (response.statusCode == 400) {
+        print('❌ City not found - 400 Bad Request');
+        setState(() {
+          _searchResults = [];
+          _isSearchingAPI = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('City "$query" not found'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        print('❌ API Error: ${response.statusCode}');
+        setState(() {
+          _searchResults = [];
+          _isSearchingAPI = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('API Error: ${response.statusCode}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('💥 Error in API call: $e');
+      setState(() {
+        _searchResults = [];
+        _isSearchingAPI = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Network error: Please check your internet connection'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _clearSearch() {
     setState(() {
       _searchController.clear();
       _isSearching = false;
+      _isSearchingAPI = false;
+      _searchResults.clear();
+      _filteredCities.clear();
       _searchFocusNode.unfocus();
     });
   }
 
-  void _showAddCitySheet() {
-    _dialogSearchController.clear();
-    showDialog(
-      context: context,
-      builder: (context) => SearchDialog(
-        onCitySearched: _searchAndAddCity,
-        controller: _dialogSearchController,
+  void _addToFavorites(WeatherData weatherData) {
+    final citiesList = Provider.of<CitiesList>(context, listen: false);
+    final cityName = weatherData.locationName;
+
+    // Check if city already exists in favorites
+    if (citiesList.containsCity(cityName)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$cityName is already in your favorites'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Add city to favorites
+    citiesList.addCity(cityName);
+
+    // Store weather data
+    setState(() {
+      _cityWeatherData[cityName] = {
+        'temp': weatherData.tempC,
+        'condition': weatherData.conditionText,
+        'icon': weatherData.conditionIcon,
+      };
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$cityName added to favorites!'),
+        backgroundColor: Colors.green,
       ),
     );
+
+    // Clear search and show favorites
+    _clearSearch();
   }
 
   @override
@@ -128,23 +259,13 @@ class _ListOfCitiesState extends State<ListOfCities> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 32),
-                  _buildAnimatedSearchBar(value),
+                  _buildSearchBar(),
                   const SizedBox(height: 32),
                   _buildCitiesSection(value),
                 ],
               ),
             ),
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _showAddCitySheet,
-          backgroundColor: const Color(0xFF4A6FA5),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(Icons.add, size: 28),
-          elevation: 8,
         ),
       ),
     );
@@ -195,9 +316,8 @@ class _ListOfCitiesState extends State<ListOfCities> {
     );
   }
 
-  Widget _buildAnimatedSearchBar(CitiesList citiesList) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+  Widget _buildSearchBar() {
+    return Container(
       height: 56,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.08),
@@ -228,10 +348,10 @@ class _ListOfCitiesState extends State<ListOfCities> {
                   fontWeight: FontWeight.w500,
                 ),
                 decoration: InputDecoration(
-                  hintText: "Search city...",
+                  hintText: "Search your favorites or worldwide cities...",
                   hintStyle: TextStyle(
                     color: Colors.white.withOpacity(0.5),
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                   border: InputBorder.none,
                   icon: Icon(
@@ -240,7 +360,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
                     size: 24,
                   ),
                 ),
-                onChanged: (query) => _filterCities(query, citiesList),
+                onChanged: _onSearchChanged,
               ),
             ),
           ),
@@ -263,38 +383,113 @@ class _ListOfCitiesState extends State<ListOfCities> {
 
   Widget _buildCitiesSection(CitiesList citiesList) {
     final citiesToShow = _isSearching ? _filteredCities : citiesList.cityList;
-    final isEmpty = citiesToShow.isEmpty;
+    final isEmpty = citiesToShow.isEmpty && _searchResults.isEmpty;
 
-    if (_isLoading) {
-      return _buildLoadingState();
+    if (_isLoading && !_isSearchingAPI) {
+      return _buildLoadingState("Loading weather data...");
     }
 
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8, bottom: 20),
-            child: Text(
-              _isSearching
-                  ? "Search Results"
-                  : "Favorite Cities (${citiesToShow.length})",
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+          if (_searchResults.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 20),
+              child: Row(
+                children: [
+                  Text(
+                    "Search Results - Tap heart to add to favorites",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.search,
+                    color: Colors.white.withOpacity(0.7),
+                    size: 16,
+                  ),
+                ],
               ),
             ),
-          ),
-          isEmpty
-              ? _buildEmptyState()
-              : _buildCitiesList(citiesToShow, citiesList),
+            _buildSearchResultsList(),
+          ] else if (_isSearchingAPI) ...[
+            _buildLoadingState("Searching worldwide cities..."),
+          ] else if (_filteredCities.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 20),
+              child: Text(
+                "Search Results in Favorites (${_filteredCities.length})",
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            _buildCitiesList(_filteredCities, citiesList),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 20),
+              child: Text(
+                _isSearching
+                    ? "Search Results"
+                    : "Favorite Cities (${citiesToShow.length})",
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            isEmpty
+                ? _buildEmptyState()
+                : _buildCitiesList(citiesToShow, citiesList),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildSearchResultsList() {
+    return Expanded(
+      child: ListView.builder(
+        physics: const BouncingScrollPhysics(),
+        itemCount: _searchResults.length,
+        itemBuilder: (context, index) {
+          final weatherData = _searchResults[index];
+
+          return CitiesTile(
+            cityName: weatherData.locationName,
+            temperature: weatherData.tempC,
+            weatherCondition: weatherData.conditionText,
+            weatherIcon: weatherData.conditionIcon,
+            isCurrentLocation: false,
+            isFavorite: false, // Not in favorites yet
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CityDetailsPage(
+                    cityName: weatherData.locationName,
+                    isFavorite: false,
+                  ),
+                ),
+              );
+            },
+            onFavoriteTap: () {
+              _addToFavorites(weatherData);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(String message) {
     return Expanded(
       child: Center(
         child: Column(
@@ -305,7 +500,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
             ),
             const SizedBox(height: 20),
             Text(
-              "Loading weather data...",
+              message,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.7),
                 fontSize: 16,
@@ -393,7 +588,7 @@ class _ListOfCitiesState extends State<ListOfCities> {
             Text(
               _isSearching
                   ? "Try searching for a different city name"
-                  : "Add your first city to see weather information",
+                  : "Search for cities worldwide using the search bar above",
               style: TextStyle(
                 color: Colors.white.withOpacity(0.6),
                 fontSize: 14,
@@ -404,13 +599,5 @@ class _ListOfCitiesState extends State<ListOfCities> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _dialogSearchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
   }
 }

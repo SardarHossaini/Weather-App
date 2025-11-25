@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/weather_page.dart';
-import 'package:weather_app/Models/city.dart';
+import 'package:weather_app/Models/city.dart' hide api_key;
 import 'package:weather_app/Models/weather_api_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -83,7 +83,7 @@ class CitiesTile extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final encoded = Uri.encodeComponent(cityName);
-    const key =
+    final key =
         api_key; // Make sure api_key is defined in your weather_api_model.dart
     final url = Uri.parse(
         'https://api.weatherapi.com/v1/current.json?key=$key&q=$encoded&aqi=no');

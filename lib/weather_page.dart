@@ -4,7 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:weather_app/Models/weather_api_model.dart';
+import 'package:weather_app/Models/weather_api_model.dart' hide api_key;
 import 'package:weather_app/Models/city.dart';
 
 class WeatherPage extends StatefulWidget {
@@ -39,7 +39,7 @@ class _WeatherPageState extends State<WeatherPage> {
     });
 
     final city = Uri.encodeComponent(widget.cityName);
-    const key = api_key;
+    final key = api_key;
     final url = Uri.parse(
         'https://api.weatherapi.com/v1/current.json?key=$key&q=$city&aqi=no');
     try {
