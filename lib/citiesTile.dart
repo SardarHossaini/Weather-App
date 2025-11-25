@@ -59,18 +59,58 @@ class CitiesTile extends StatelessWidget {
           ),
           child: Stack(
             children: [
+              // Background pattern
               _buildBackgroundPattern(),
+
+              // Main content
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
+                    // Location Icon
                     _buildLocationIcon(),
                     const SizedBox(width: 16),
-                    _buildCityInfo(),
-                    _buildTemperatureSection(),
+
+                    // City Info - Expanded to take available space
+                    Expanded(
+                      child: _buildCityInfo(),
+                    ),
+
+                    // Temperature and Weather Icon - Fixed width container
+                    Container(
+                      width: 80,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        spacing: -5,
+                        children: [
+                          // Temperature
+                          Text(
+                            '${temperature.toStringAsFixed(0)}°',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 23,
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+
+                          // Weather Icon
+                          Image.network(
+                            'https:$weatherIcon',
+                            width: 30,
+                            height: 30,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildWeatherIcon(weatherCondition);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
+
+              // Favorite Button
               _buildFavoriteButton(),
             ],
           ),
@@ -83,8 +123,7 @@ class CitiesTile extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final encoded = Uri.encodeComponent(cityName);
-    final key =
-        api_key; // Make sure api_key is defined in your weather_api_model.dart
+    final key = api_key;
     final url = Uri.parse(
         'https://api.weatherapi.com/v1/current.json?key=$key&q=$encoded&aqi=no');
 
@@ -132,35 +171,37 @@ class CitiesTile extends StatelessWidget {
   }
 
   Widget _buildCityInfo() {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Text(
-                cityName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            Text(
+              cityName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
-              if (isCurrentLocation) ..._buildCurrentLocationBadge(),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            weatherCondition,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
+            if (isCurrentLocation) ..._buildCurrentLocationBadge(),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          weatherCondition,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
           ),
-        ],
-      ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+      ],
     );
   }
 
@@ -183,35 +224,6 @@ class CitiesTile extends StatelessWidget {
         ),
       ),
     ];
-  }
-
-  Widget _buildTemperatureSection() {
-    return Container(
-      width: 80,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        spacing: -5,
-        children: [
-          Text(
-            '${temperature.toStringAsFixed(0)}°',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w200,
-            ),
-          ),
-          Image.network(
-            'https:$weatherIcon',
-            width: 32,
-            height: 32,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildWeatherIcon(weatherCondition);
-            },
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildFavoriteButton() {
@@ -299,7 +311,7 @@ class CitiesTile extends StatelessWidget {
     return Icon(
       icon,
       color: color,
-      size: 24,
+      size: 30,
     );
   }
 }
