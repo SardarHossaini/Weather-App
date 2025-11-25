@@ -146,9 +146,15 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // Loading Indicator
                 SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Image.asset("assets/images/spinner.svg")),
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ),
 
                 const SizedBox(height: 20),
 
